@@ -26,20 +26,6 @@
 
 
 
-(defn get-string-as-numbers [the-string]
-    (vec (map #(Character/getNumericValue %) the-string))
-  )
-
-(defn make-the-array [zero-one-string]
-  (let [file-split-by-line (clojure.string/split zero-one-string #"\n")
-;        number-of-lines (count file-split-by-line)
-        ]
-    (vec (map #(get-string-as-numbers %) file-split-by-line))
-    ;(vec (map #(clojure.string/split % #"\d+") file-split-by-line))
-    )
-  )
-
-
 (defn find-patterns-in-range
   "takes
 all-pattern-maps=sorted-by-position which is all the maps of the reamining patterns
@@ -262,43 +248,41 @@ pattern-to-match = one of ALL the patterns that we have defined in patterns.clj"
 ; Input handling
 
 
-(defn read-text-image-line [line]
-  (if (= "white" (last (clojure.string/split line #"[,:\s]+")))
-    "0"
-    "1")
+
+
+(defn main []
+  (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
+        temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
+        all-images-in-directory (fs/list-dir images-directory)
+        ]
+    (for [one-image all-images-in-directory]
+      (do
+        (reset-get-each-sentence)
+        (convert-image-black-white-then-to-text (str images-directory one-image) (str temp-directory one-image) (str temp-directory one-image ".txt"))
+        (load-text-image (str temp-directory one-image ".txt") (str temp-directory one-image "oneszeros.txt"))
+        (split-text-image-into-lines (slurp (str temp-directory one-image "oneszeros.txt")))
+        (let [all-sentences (get-each-sentence)]
+          (for [one-line all-sentences]
+            (pattern-reader-main one-line)
+            )
+          )
+        )
+      )
+    )
+)
+
+(defn test-counts []
+  (let [images-directory "/home/jared/clojureprojects/thaiocr/minimumtest/"
+        all-images-in-directory (filter #(= (apply str (drop 10 %)) "bmponeszeros.txt") (fs/list-dir images-directory))
+        ]
+    (for [one-image all-images-in-directory]
+      (split-text-image-into-lines (slurp (str images-directory one-image)))
+      )
+    )
   )
 
-(defn load-text-image
-  "Loads a black and white image stored in imagemagick's text format
-into a bitmap with '0' representing white and '1' black."
-  [in out]
-  (let [lines (clojure.string/split (slurp in) #"\n" )
-        image-size (+ 1 (read-string (first (clojure.string/split (last lines) #","))))
-        converted (map read-text-image-line lines)]
-    (spit out (apply str (map #(str (apply str %) "\n") (partition image-size converted))))))
-
-
-
-(defn convert-image-black-white-then-to-text
-  "Convert any image into the format required by the classifier."
-  [in out out-text]
-  (sh "convert" in "-colorspace" "gray" "+dither" "-colors" "2"
-      "-normalize" out)
-  (sh "convert" out out-text)
- ; (write-lines out (load-text-image out))
-  )
-
-
-(def each-sentence (atom {:each-line []}))
-
-(defn get-each-sentence [] (@each-sentence :each-line))
-
-(defn update-get-each-sentence [one-sentence]
-   (swap! each-sentence update-in [:each-line] merge one-sentence)
-   )
-
-(defn reset-get-each-sentence []
-  (reset! each-sentence {:each-line []})
+(defn spit-test [one-sentence]
+  (spit "/home/jared/clojureprojects/thaiocr/testtest.txt" one-sentence)
   )
 
 (defn find-text-portion
@@ -344,7 +328,9 @@ into a bitmap with '0' representing white and '1' black."
       )
   )
 
-(defn split-text-image-into-lines [file-string]
+(defn split-text-image-into-lines
+  "take a string of the entire 1s0s image.txt and split it into lines"
+  [file-string]
   (let [string-split-by-line (clojure.string/split-lines file-string)
         width (count (first string-split-by-line))
         width-minus-one (- width 1)
@@ -364,40 +350,4 @@ into a bitmap with '0' representing white and '1' black."
         )
       )
     )
-  )
-
-
-(defn main []
-  (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
-        temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
-        all-images-in-directory (fs/list-dir images-directory)
-        ]
-    (for [one-image all-images-in-directory]
-      (do
-        (reset-get-each-sentence)
-        (convert-image-black-white-then-to-text (str images-directory one-image) (str temp-directory one-image) (str temp-directory one-image ".txt"))
-        (load-text-image (str temp-directory one-image ".txt") (str temp-directory one-image "oneszeros.txt"))
-        (split-text-image-into-lines (slurp (str temp-directory one-image "oneszeros.txt")))
-        (let [all-sentences (get-each-sentence)]
-          (for [one-line all-sentences]
-            (pattern-reader-main one-line)
-            )
-          )
-        )
-      )
-    )
-)
-
-(defn test-counts []
-  (let [images-directory "/home/jared/clojureprojects/thaiocr/minimumtest/"
-        all-images-in-directory (filter #(= (apply str (drop 10 %)) "bmponeszeros.txt") (fs/list-dir images-directory))
-        ]
-    (for [one-image all-images-in-directory]
-      (split-text-image-into-lines (slurp (str images-directory one-image)))
-      )
-    )
-  )
-
-(defn spit-test [one-sentence]
-  (spit "/home/jared/clojureprojects/thaiocr/testtest.txt" one-sentence)
   )
