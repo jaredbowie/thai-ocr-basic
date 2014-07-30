@@ -241,10 +241,10 @@
   "flooding regions"
   [the-zero-one-map]
 ;  (println "slightly-altered " )
-  (println "@relationships " @relationships)
+;  (println "@relationships " @relationships)
   (let [new-relationships (remake-relations (slightly-alter-relationships)) ;
         ]
-    (println "new-relationships " new-relationships)
+ ;   (println "new-relationships " new-relationships)
     (loop [number-of-rows (range (count the-zero-one-map))
            number-of-columns (range (count (val (first the-zero-one-map))))]
       ;loop through each row
@@ -298,8 +298,8 @@
               highest-row (apply max (:row (val first-character-number)))
               lowest-column (apply min (:column (val first-character-number)))
               highest-column (apply max (:column (val first-character-number)))
-              column-range (range lowest-column highest-column)
-              row-range (range lowest-row highest-row)
+              column-range (range lowest-column (+ 1 highest-column))
+              row-range (range lowest-row (+ 1 highest-row))
               one-newly-found-character
               (loop [row-range row-range
                      new-character ""]
@@ -366,7 +366,8 @@ into a bitmap with '0' representing white and '1' black."
   (let [the-2d-map (make-the-2d-map the-ones-zeros-string)]
     (pass1 the-2d-map)
     (pass2 the-2d-map)
-    (spit "/home/jared/clojureprojects/thaiocr/debugging.txt" (character-extraction))
+    (character-extraction)
+    ;(spit "/home/jared/clojureprojects/thaiocr/debugging.txt" (character-extraction))
                                         ;  @characters-letters-as-strings
     )
   )
