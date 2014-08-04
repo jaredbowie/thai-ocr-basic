@@ -1,14 +1,18 @@
 (ns thaiocr.character-reading
   (:require
-   [thaiocr.twopassextraction :as twopassextraction :refer [main]]
+   [thaiocr.sentence-writing :as sentence-writing :refer [make-sentence-vector]]
+   [thaiocr.twopassextraction :as twopassextraction :refer [character-extraction-main]]
    [monger.core :as mgcore]
    [monger.collection :as mgcoll]
    [monger.db :as mgdb :refer [get-collection-names]]
+   [me.raynes.fs :as fs]
             )
   (:import [com.mongodb MongoOptions ServerAddress]
            [org.bson.types ObjectId]
            )
   )
+
+(declare ask-what-each-character-is)
 
 ; special cases are like
                                         ; ญ which is not connected to itself
@@ -67,8 +71,14 @@
     )
   )
 
-(defn view-all-documents [conn db]
-  (mgcoll/find-maps db "all-documents")
+(defn view-all-documents []
+  (let [conn (mgcore/connect)
+        db (mgcore/get-db conn "thai-ocr")
+        all-maps (mgcoll/find-maps db "all-documents")
+        ]
+    (for [one-map all-maps]
+      one-map
+      ) )
   )
 
 (defn view-special-characters
@@ -78,7 +88,7 @@
         all-maps (mgcoll/find-maps db "special-characters")
         ]
     (for [one-map all-maps]
-      (println (:character-string-ones-zeros one-map))
+      one-map
       )
     )
   )
@@ -98,8 +108,6 @@
         ]
      (mgcoll/remove db "all-documents")
     )
-
-
   )
 
 (defn remove-special-characters []
@@ -108,7 +116,6 @@
         ]
     (mgcoll/remove db "special-characters"))
   )
-
 
 (defn character-match?
   "checks if a character matches if it does returns the character otherwise returns false"
@@ -119,7 +126,7 @@
          perfect-match (first (filter #(= (:character-string-ones-zeros %) one-string) map-matches))
          ]
      (if (not (empty? perfect-match))
-       (:associated-character perfect-match)
+       {:character (:associated-character perfect-match) :level (:level perfect-match)}
        false
        )
     )
@@ -143,13 +150,13 @@ returns map of special-character
   )
 
 
-(defn split-the-character [ones-zeros-string vertical-or-horizontal row-or-column-number]
+(defn split-the-character [ones-zeros-string by-row-or-by-column row-or-column-number]
   (let [string-split-by-lines (clojure.string/split-lines ones-zeros-string)
         row-count (count string-split-by-lines)
         column-count (count (second string-split-by-lines))
         ]
-;    (println (second string-split-by-lines))
-    (if (= "byrow" vertical-or-horizontal)
+   ; (println ones-zeros-string)
+    (if (= "byrow" by-row-or-by-column)
       (vector (apply str (map #(str % "\n") (take row-or-column-number string-split-by-lines)))
               (apply str (map #(str % "\n") (take-last (- row-count row-or-column-number) string-split-by-lines))))
       (vector (apply str (map #(str (apply str (take row-or-column-number %)) "\n") string-split-by-lines))
@@ -157,56 +164,110 @@ returns map of special-character
       ))
   )
 
+
+(defn determine-each-character-placement
+  "determine two characters new positions after a split"
+  [lowest-row highest-row lowest-column highest-column by-row-or-by-column row-or-column-split-number]
+  (if (= by-row-or-by-column "byrow")
+    (let [lowest-row-first lowest-row
+          highest-row-first row-or-column-split-number
+          lowest-column-first lowest-column
+          highest-column-first highest-column
+          lowest-row-second (+ 1 row-or-column-split-number)
+          highest-row-second highest-row
+          lowest-column-second lowest-column
+          highest-column-second highest-column
+          ]
+      [lowest-row-first highest-row-first lowest-column-first highest-column-first lowest-row-second highest-row-second lowest-column-second highest-column-second]
+      )
+    (let [lowest-row-first lowest-row
+          highest-row-first highest-row
+          lowest-column-first lowest-column
+          highest-column-first row-or-column-split-number
+          lowest-row-second lowest-row
+          highest-row-second highest-row
+          lowest-column-second (+ 1 row-or-column-split-number)
+          highest-column-second highest-column
+          ]
+      [lowest-row-first highest-row-first lowest-column-first highest-column-first lowest-row-second highest-row-second lowest-column-second highest-column-second]
+      )
+    )
+  )
+
+(defn send-back-characters-and-placement
+  "for use with 2 strings split from one
+new-characters is a vector of 2 strings
+"
+  [lowest-row highest-row lowest-column highest-column by-row-or-by-column row-or-column-split-number new-characters]
+ ; (println lowest-row highest-row lowest-column highest-column by-row-or-by-column row-or-column-split-number new-characters)
+  (let [[lowest-row-first highest-row-first lowest-column-first highest-column-first lowest-row-second highest-row-second lowest-column-second highest-column-second] (determine-each-character-placement lowest-row highest-row lowest-column highest-column by-row-or-by-column row-or-column-split-number)]
+    [[{:character (first new-characters) :lowest-row lowest-row-first :highest-row highest-row-first :lowest-column lowest-column-first :highest-column highest-column-first}
+      {:character (second new-characters) :lowest-row lowest-row-second :highest-row highest-row-second :lowest-column lowest-column-second :highest-column highest-column-second}]
+     by-row-or-by-column
+     row-or-column-split-number]
+    )
+  )
+
 (defn split-ones-zeros-string
   "we can split a ones-zeros-string vertically or horizontally and then reevaluate those characters
 takes one ones-zero-string that we assume is a combination of two characters
 returns a vector of two characters, the split column or row and the split place
 "
-  [ones-zeros-string]
-  (loop [try-again true]
-    (do
-      (println ones-zeros-string)
-      (println "type 'byrow' or 'bycolumn' to tell us where to split")
-      (let [vertical-or-horizontal (read-line)]
-        (println "now type the row or column to split at")
-        (let [row-or-column-split (read-string (read-line))
-              new-characters (split-the-character ones-zeros-string vertical-or-horizontal row-or-column-split)
-              ]
-          (doall (for [one-character new-characters]
-                   (println one-character)
-                   ))
-          (println "Looks OK? yes/no")
-          (let [looks-ok (read-line)]
-            (if (= looks-ok "yes")
-              [new-characters vertical-or-horizontal row-or-column-split]
-              (recur true)
+  [ones-zeros-string-map]
+  (let [ones-zeros-string (:character ones-zeros-string-map)
+        lowest-row (:lowest-row ones-zeros-string-map)
+        highest-row (:highest-row ones-zeros-string-map)
+        lowest-column (:lowest-column ones-zeros-string-map)
+        highest-column (:highest-column ones-zeros-string-map)
+        split-at ()
+        ]
+    (loop [try-again true]
+      (do
+        (println ones-zeros-string-map)
+        (println "type 'byrow' or 'bycolumn' to tell us where to split")
+        (let [by-column-or-by-row (read-line)]
+          (println "now type the row or column to split at")
+          (let [row-or-column-number (read-string (read-line))
+                new-characters (split-the-character ones-zeros-string by-column-or-by-row row-or-column-number)
+                ]
+            (doall (for [one-character new-characters]
+                     (println one-character)
+                     ))
+            (println "Looks OK? yes/no")
+            (let [looks-ok (read-line)]
+              (if (= looks-ok "yes")
+                (send-back-characters-and-placement lowest-row highest-row lowest-column highest-column by-column-or-by-row row-or-column-number new-characters)
+                (recur true)
+                )
               )
             )
           )
         )
+
       )
     )
   )
 
-
 (defn do-one-ones-zeros
   "take one string and add it's corresponding character to the db"
-  [one-string conn db]
-;  (println "b")
-  (let [ones-zeros-string-split-by-line (clojure.string/split-lines one-string)
+  [first-character-map conn db]
+;  (println first-character-map)
+  (let [one-string (:character first-character-map)
+        ones-zeros-string-split-by-line (clojure.string/split-lines one-string)
         number-of-columns (count ones-zeros-string-split-by-line)
         number-of-rows (count (second ones-zeros-string-split-by-line))
         matched-character (character-match? one-string number-of-rows number-of-columns conn db)
         special-character-match (special-character-match? one-string number-of-rows number-of-columns conn db)
-        to-print (str (if (not (false? matched-character))
-                        matched-character
-                        )
-                      (if (not (false? special-character-match))
-                        special-character-match
-                        )
-                      )
+        #_(comment to-print (str (if (not (false? matched-character))
+                                 matched-character
+                                 )
+                               (if (not (false? special-character-match))
+                                 special-character-match
+                                 )
+                               ))
         ]
-    (if (false? matched-character)
+    (if matched-character
+      {:character (:character matched-character) :level (:level matched-character) :lowest-row (:lowest-row first-character-map) :highest-row (:highest-row first-character-map) :lowest-column (:lowest-column first-character-map) :highest-column (:highest-column first-character-map)}
       (if (false? special-character-match)
         (do
           (println one-string)
@@ -215,68 +276,124 @@ returns a vector of two characters, the split column or row and the split place
           (let [string-association (read-line)]
             (cond
              (= string-association "###")
-             (let [[strings-split split-by split-at] (split-ones-zeros-string one-string)
-                    the-map (make-map-for-one-character one-string string-association split-by split-at)
+             (let [[strings-split-maps split-by split-at] (split-ones-zeros-string first-character-map)
+                   the-map (make-map-for-one-character one-string string-association split-by split-at)
+                  ; string-map-a {:character (first strings-split) :lowest-row :highest-row :lowest-column :highest-column}
+                  ; string-map-b {:character (second strings-split) :lowest-row :highest-row :lowest-column :highest-column}
                     ]
-                                        ;check if character is in db
-                                        ;check if there is a split for the character
-                                        ;if there is a split; split it and send each character back in
-
+                    ;check if character is in db
+                    ;check if there is a split for the character
+                    ;if there is a split; split it and send each character back in
                 (store-special-characters the-map conn db)
-                (println "strings split " strings-split)
-                (doall
-                 (for [one-of-the-characters-returned strings-split]
-                         (do-one-ones-zeros one-of-the-characters-returned conn db)
-                         ))
+                (println "strings split " strings-split-maps)
+                (println "next ")
+                (doall (ask-what-each-character-is strings-split-maps conn db)
+                 )
                 )
-              :else (let [the-map (make-map-for-one-character one-string string-association nil nil)]
-                (insert-document the-map conn db)
+             (= string-association "ะ") (println "ะ")
+             (= string-association "ำ") (println "ำ")
+             (= string-association "ญ") (println "ญ")
+             (= string-association "ฐ") (println "ฐ")
+             (= string-association "i") (println "i")
+             (= string-association "j") (println "j")
+             :else (let [the-map (make-map-for-one-character one-string string-association nil nil)]
+                    ; (println the-map)
+                     (insert-document the-map conn db)
+                     nil
                 )
               )
             )
           )
         (doall
-         ;(println special-character-match)
-         (let [split-character (split-the-character (:character-string-ones-zeros special-character-match) (:split-by special-character-match) (:split-at special-character-match))]
-           ;(print (first split-character))
-           (for [one-of-the-characters-returned split-character]
-             (do-one-ones-zeros one-of-the-characters-returned conn db)
-             ))
+         (let [split-characters-vector (split-the-character (:character first-character-map) (:split-by special-character-match) (:split-at special-character-match))
+               [split-characters-maps by-row-or-by-column row-or-column-split] (send-back-characters-and-placement (:lowest-row first-character-map) (:highest-row first-character-map) (:lowest-column first-character-map) (:highest-column first-character-map) (:split-by special-character-match) (:split-at special-character-match) split-characters-vector)]
+;           (println "split-char " split-characters-maps)
+           (doall (ask-what-each-character-is split-characters-maps conn db)
+                  )
+           )
          )
         )
-      (println matched-character)
       )
     )
   )
 
+(defn ask-what-each-character-is-check-param
+  [vec-of-maps-strings conn db]
+  (if (vector? vec-of-maps-strings)
+    (if (empty? (filter #(not (map? %)) vec-of-maps-strings))
+      (if (not (empty? (filter #(and (contains? % :character) (contains? % :lowest-row) (contains? % :highest-row) (contains? % :lowest-column) (contains? % :highest-column)) vec-of-maps-strings)))
+        true
+        "maps have wrong parameters"
+        )
+      "inside the vector is not only maps"
+      ;["inside the vector is not only maps" vec-of-maps-strings]
+      )
+    ["not passed a vector" vec-of-maps-strings]
+    )
+  )
+
 (defn ask-what-each-character-is
-  "take a vector of strings each containing one chracter in 1s and 0s and ask the user what that chracter is"
-  [vector-of-strings conn db]
-;  (println "a")
-  (let [with-no-empty-strings (filter #(not (or (empty? %) (= "\n1" %))) vector-of-strings)]
-    (doall (loop [with-no-empty-strings with-no-empty-strings]
-             (when (not (empty? with-no-empty-strings))
-               (let [one-string (first with-no-empty-strings)]
-                  (do-one-ones-zeros one-string conn db)
-                 (recur (drop 1 with-no-empty-strings)))
-               )
-                                        ; (println (read-line))
-             )
-           )
+  "take a vector of strings each containing one chracter in 1s and 0s and ask the user what that chracter is
+accepts: vec-of-maps-strings, maps of type {:character new-character :lowest-row lowest-row :highest-row highest-row :lowest-column lowest-column :highest-column highest-column}
+connection to db and the db we are connected to
+"
+  [vec-of-maps-strings conn db]
+  (let [params-check (ask-what-each-character-is-check-param vec-of-maps-strings conn db)]
+    (if (true? params-check)
+      (do
+ ;       (println "vec-of-maps-string " vec-of-maps-strings)
+        (let [with-no-empty-strings (filter #(not (or (empty? %) (= "\n1" (:character %)) (= "11" (:character %)))) vec-of-maps-strings)]
+          (doall (loop [with-no-empty-strings with-no-empty-strings
+                        character-maps-found []
+                        ]
+                   (if (empty? with-no-empty-strings)
+                     character-maps-found
+                     (let [first-character-map (first with-no-empty-strings)]
+                       (recur (drop 1 with-no-empty-strings)
+                              (conj character-maps-found (do-one-ones-zeros first-character-map conn db))))
+                     )
+                   )
+                 )
+          )
+        )
+      params-check
+      )
     )
   )
 
 
-(defn -main []
+(defn character-identification-main [string-groups-of-ones-zeros-character]
+;  (println string-groups-of-ones-zeros-character)
   (doall
-   (let [string-groups-of-ones-zeros-character (twopassextraction/main)
-         conn (mgcore/connect)
+   (let [conn (mgcore/connect)
          db (mgcore/get-db conn "thai-ocr")
-         ]
-     (for [one-string-group string-groups-of-ones-zeros-character]
-       (doall (ask-what-each-character-is one-string-group conn db))
-       )
-     ;(mgcore/disconnect conn)
+         vector-of-character-maps (for [one-string-group string-groups-of-ones-zeros-character]
+                                    (do
+                                      (let [group-of-characters (first one-string-group)
+                                            the-whole-ones-zero-pattern (second one-string-group)]
+                                        (doall (ask-what-each-character-is group-of-characters conn db))))
+           )]
+     ;(let [])
+     (doall (sentence-writing/make-sentence-vector (flatten vector-of-character-maps)))
      )
    )
+  )
+
+
+(defn -main []
+ (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
+       temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
+       all-images-in-directory (fs/list-dir images-directory)
+       ]
+   ;(println all-images-in-directory)
+   (doall (for [one-image all-images-in-directory]
+            (do
+              ;(println one-image)
+              (let [vector-of-character-maps [(doall (twopassextraction/character-extraction-main one-image images-directory temp-directory))]]
+                (doall (character-identification-main vector-of-character-maps))
+                )
+              )
+            )
+          )
+    )
   )

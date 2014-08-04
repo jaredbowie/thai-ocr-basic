@@ -1,6 +1,6 @@
 (ns thaiocr.twopassextraction
   (:require [clojure.java.shell :refer [sh]]
-            [me.raynes.fs :as fs]
+          ;  [me.raynes.fs :as fs]
             )
 
   )
@@ -304,7 +304,7 @@
               (loop [row-range row-range
                      new-character ""]
                 (if (empty? row-range)
-                  new-character
+                  {:character new-character :lowest-row lowest-row :highest-row highest-row :lowest-column lowest-column :highest-column highest-column}
                   (let [first-row (first row-range)
                         one-column
                         (loop [column-range column-range
@@ -372,18 +372,40 @@ into a bitmap with '0' representing white and '1' black."
     )
   )
 
-(defn main []
-  (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
-        temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
-        all-images-in-directory (fs/list-dir images-directory)
+#_(defn split-text-image-into-lines
+  "take a string of the entire 1s0s image.txt and split it into lines"
+  [file-string]
+  (let [string-split-by-line (clojure.string/split-lines file-string)
+        width (count (first string-split-by-line))
+        width-minus-one (- width 1)
+        line0 (str "1" (apply str (take width-minus-one (repeat "0"))))
+        line1 (apply str (take width (repeat "0")))
         ]
-    (for [one-image all-images-in-directory]
-      (do
-        (convert-image-black-white-then-to-text (str images-directory one-image) (str temp-directory one-image) (str temp-directory one-image ".txt"))
-        (load-text-image (str temp-directory one-image ".txt") (str temp-directory one-image "oneszeros.txt"))
-       ; (println (slurp (str temp-directory one-image "oneszeros.txt")))
-        (blob-extraction (slurp (str temp-directory one-image "oneszeros.txt")))
+    (loop [string-split-by-line string-split-by-line]
+      ;drop empty lines until we find some text on the line
+      (when (and (not (empty? string-split-by-line)) (not (nil? string-split-by-line)))
+        (let [;first-line (first string-split-by-line)
+              new-string-split-by-line (find-text-portion string-split-by-line line1)
+              ]
+;          (println (count new-string-split-by-line))
+          ;(spit "/home/jared/clojureprojects/thaiocr/testtest.txt" (str (vec new-string-split-by-line) "\n") :append true)
+          (recur new-string-split-by-line)
+          )
         )
       )
+    )
+  )
+
+
+(defn character-extraction-main [one-image images-directory temp-directory]
+  (convert-image-black-white-then-to-text (str images-directory one-image) (str temp-directory one-image) (str temp-directory one-image ".txt"))
+  (load-text-image (str temp-directory one-image ".txt") (str temp-directory one-image "oneszeros.txt"))
+                                        ; (println (slurp (str temp-directory one-image "oneszeros.txt")))
+  (let [the-image-ones-zeros (slurp (str temp-directory one-image "oneszeros.txt"))
+      ; image-split (split-text-image-into-lines the-image-ones-zeros)
+        ]
+                                        ;return both a vector of extracted characters and the entire oneszero
+    (println one-image)
+    [(blob-extraction the-image-ones-zeros) the-image-ones-zeros]
     )
   )
