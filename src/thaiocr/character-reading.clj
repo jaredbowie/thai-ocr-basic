@@ -32,8 +32,16 @@
   {:character-string-ones-zeros "0000001" :columns 7 :rows 1 :associated-character "f" :level 1}
   )
 
+(comment "character level"
+         "1" "ล"
+         "2" "ิ"
+         "3" "ู"
+         "4" "้"
+         "5" "a"
+         )
+
 (defn character-level [one-character]
-  (let [all-levels-map {"ก" 3 "ข" 3 "ฃ" 3 "ค" 3 "ฅ" 3 "ฆ" 3 "ง" 3 "จ" 3 "ฉ" 3 "ช" 3 "ซ" 3 "ฌ" 3 "ญ" 3 "ฎ" 3 "ฏ" 3 "ฐ" 3 "ฑ" 3 "ฒ" 3 "ณ" 3 "ด" 3 "ต" 3 "ถ" 3 "ท" 3 "ธ" 3 "น" 3 "บ" 3 "ป" 3 "ผ" 3 "ฝ" 3 "พ" 3 "ฟ" 3 "ภ" 3 "ม" 3 "ย" 3 "ร" 3 "ล" 3 "ว" 3 "ศ" 3 "ษ" 3 "ส" 3 "ห" 3 "ฬ" 3 "อ" 3 "ฮ" 3 "ฯ" 5 "ะ" 5 "ั" 2 "า" 5 " ำ" 3 "ิ" 2 "ี" 2 "ึ" 2 "ื" 2 "ุ" 4 "ู" 4 "฿" 5 "เ" 5 "แ" 5 "โ" 5 "ใ" 5 "ไ" 5 "ๅ" 3 "ๆ" 5 "็" 1 "่" 1 "้" 1 "๊" 1 "๋" 1 "์" 2 "๐" 5 "๑" 5 "๒" 5 "๓" 5 "๔" 5 "๕" 5 "๖" 5 "๗" 5 "๘" 5 "๙" 5 "a" 5 "b" 5 "c" 5 "d" 5 "e" 5 "f" 5 "g" 5 "h" 5 "i" 5 "j" 5 "k" 5 "l" 5 "m" 5 "n" 5 "o" 5 "p" 5 "q" 5 "r" 5 "s" 5 "t" 5 "u" 5 "v" 5 "w" 5 "x" 5 "y" 5 "z" 5 "A" 5 "B" 5 "C" 5 "D" 5 "E" 5 "F" 5 "G" 5 "H" 5 "I" 5 "J" 5 "K" 5 "L" 5 "M" 5 "N" 5 "O" 5 "P" 5 "Q" 5 "R" 5 "S" 5 "T" 5 "U" 5 "V" 5 "W" 5 "X" 5 "Y" 5 "Z" 5 "1" 5 "2" 5 "3" 5 "4" 5 "5" 5 "6" 5 "7" 5 "8" 5 "9" 5 "0" 5}]
+  (let [all-levels-map {"ก" 1 "ข" 1 "ฃ" 1 "ค" 1 "ฅ" 1 "ฆ" 1 "ง" 1 "จ" 1 "ฉ" 1 "ช" 1 "ซ" 1 "ฌ" 1 "ญ" 1 "ฎ" 1 "ฏ" 1 "ฐ" 1 "ฑ" 1 "ฒ" 1 "ณ" 1 "ด" 1 "ต" 1 "ถ" 1 "ท" 1 "ธ" 1 "น" 1 "บ" 1 "ป" 1 "ผ" 1 "ฝ" 1 "พ" 1 "ฟ" 1 "ภ" 1 "ม" 1 "ย" 1 "ร" 1 "ล" 1 "ว" 1 "ศ" 1 "ษ" 1 "ส" 1 "ห" 1 "ฬ" 1 "อ" 1 "ฮ" 1 "ฯ" 5 "ะ" 5 "ั" 2 "า" 5 " ำ" 2 "ิ" 2 "ี" 2 "ึ" 2 "ื" 2 "ุ" 3 "ู" 3 "฿" 5 "เ" 5 "แ" 5 "โ" 5 "ใ" 5 "ไ" 5 "ๅ" 1 "ๆ" 5 "็" 4 "่" 4 "้" 4 "๊" 4 "๋" 4 "์" 4 "๐" 5 "๑" 5 "๒" 5 "๓" 5 "๔" 5 "๕" 5 "๖" 5 "๗" 5 "๘" 5 "๙" 5 "a" 5 "b" 5 "c" 5 "d" 5 "e" 5 "f" 5 "g" 5 "h" 5 "i" 5 "j" 5 "k" 5 "l" 5 "m" 5 "n" 5 "o" 5 "p" 5 "q" 5 "r" 5 "s" 5 "t" 5 "u" 5 "v" 5 "w" 5 "x" 5 "y" 5 "z" 5 "A" 5 "B" 5 "C" 5 "D" 5 "E" 5 "F" 5 "G" 5 "H" 5 "I" 5 "J" 5 "K" 5 "L" 5 "M" 5 "N" 5 "O" 5 "P" 5 "Q" 5 "R" 5 "S" 5 "T" 5 "U" 5 "V" 5 "W" 5 "X" 5 "Y" 5 "Z" 5 "1" 5 "2" 5 "3" 5 "4" 5 "5" 5 "6" 5 "7" 5 "8" 5 "9" 5 "0" 5}]
     (get all-levels-map one-character)
       )
   )
@@ -168,12 +176,15 @@ returns map of special-character
 (defn determine-each-character-placement
   "determine two characters new positions after a split"
   [lowest-row highest-row lowest-column highest-column by-row-or-by-column row-or-column-split-number]
+ ; (println lowest-column)
+                                        ; (println row-or-column-split-number)
+  ;if you split by row
   (if (= by-row-or-by-column "byrow")
     (let [lowest-row-first lowest-row
-          highest-row-first row-or-column-split-number
+          highest-row-first (+ lowest-row row-or-column-split-number)
           lowest-column-first lowest-column
           highest-column-first highest-column
-          lowest-row-second (+ 1 row-or-column-split-number)
+          lowest-row-second (+ 1 lowest-row row-or-column-split-number)
           highest-row-second highest-row
           lowest-column-second lowest-column
           highest-column-second highest-column
@@ -183,10 +194,10 @@ returns map of special-character
     (let [lowest-row-first lowest-row
           highest-row-first highest-row
           lowest-column-first lowest-column
-          highest-column-first row-or-column-split-number
+          highest-column-first (+ lowest-column row-or-column-split-number)
           lowest-row-second lowest-row
           highest-row-second highest-row
-          lowest-column-second (+ 1 row-or-column-split-number)
+          lowest-column-second (+ 1 lowest-column row-or-column-split-number)
           highest-column-second highest-column
           ]
       [lowest-row-first highest-row-first lowest-column-first highest-column-first lowest-row-second highest-row-second lowest-column-second highest-column-second]
@@ -290,16 +301,16 @@ returns a vector of two characters, the split column or row and the split place
                 (doall (ask-what-each-character-is strings-split-maps conn db)
                  )
                 )
-             (= string-association "ะ") (println "ะ")
-             (= string-association "ำ") (println "ำ")
-             (= string-association "ญ") (println "ญ")
-             (= string-association "ฐ") (println "ฐ")
-             (= string-association "i") (println "i")
-             (= string-association "j") (println "j")
+             ;(= string-association "ะ") (println "ะ")
+             ;(= string-association "ำ") (println "ำ")
+             ;(= string-association "ญ") (println "ญ")
+             ;(= string-association "ฐ") (println "ฐ")
+             ;(= string-association "i") (println "i")
+             ;(= string-association "j") (println "j")
              :else (let [the-map (make-map-for-one-character one-string string-association nil nil)]
                     ; (println the-map)
                      (insert-document the-map conn db)
-                     nil
+                       {:character (:associated-character the-map) :level (:level the-map) :lowest-row (:lowest-row first-character-map) :highest-row (:highest-row first-character-map) :lowest-column (:lowest-column first-character-map) :highest-column (:highest-column first-character-map)}
                 )
               )
             )
@@ -338,19 +349,34 @@ accepts: vec-of-maps-strings, maps of type {:character new-character :lowest-row
 connection to db and the db we are connected to
 "
   [vec-of-maps-strings conn db]
+;  (println "vec-of-maps-strings " vec-of-maps-strings)
   (let [params-check (ask-what-each-character-is-check-param vec-of-maps-strings conn db)]
     (if (true? params-check)
       (do
  ;       (println "vec-of-maps-string " vec-of-maps-strings)
-        (let [with-no-empty-strings (filter #(not (or (empty? %) (= "\n1" (:character %)) (= "11" (:character %)))) vec-of-maps-strings)]
-          (doall (loop [with-no-empty-strings with-no-empty-strings
+        (let [with-no-empty-strings (filter #(not (or (empty? %) (= "\n1" (:character %)) (= "11" (:character %)))) vec-of-maps-strings)
+              with-no-empty-strings-sorted (sort-by :lowest-column with-no-empty-strings)
+              ]
+          ;(println "with-no " with-no-empty-strings-sorted)
+          (doall (loop [with-no-empty-strings with-no-empty-strings-sorted
                         character-maps-found []
                         ]
                    (if (empty? with-no-empty-strings)
                      character-maps-found
-                     (let [first-character-map (first with-no-empty-strings)]
+                     (let [first-character-map (first with-no-empty-strings)
+                           new-character-map-found-or-edit (do-one-ones-zeros first-character-map conn db)
+                           ]
+                                        ;(println "####")
+                                        ;(println "####")
+                                        ;(println "####")
+                                        ;(println "####")
+                                        ;(println "####")
+
+
                        (recur (drop 1 with-no-empty-strings)
-                              (conj character-maps-found (do-one-ones-zeros first-character-map conn db))))
+                              (conj character-maps-found new-character-map-found-or-edit))
+
+                       )
                      )
                    )
                  )
@@ -373,8 +399,7 @@ connection to db and the db we are connected to
                                             the-whole-ones-zero-pattern (second one-string-group)]
                                         (doall (ask-what-each-character-is group-of-characters conn db))))
            )]
-     ;(let [])
-     (doall (sentence-writing/make-sentence-vector (flatten vector-of-character-maps)))
+     (doall (clojure.string/join "\n" (sentence-writing/make-sentence-vector (flatten vector-of-character-maps))))
      )
    )
   )
@@ -383,17 +408,27 @@ connection to db and the db we are connected to
 (defn -main []
  (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
        temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
+       text-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
+       new-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
+       subtitle-file-as-string (slurp text-file-full-path)
        all-images-in-directory (fs/list-dir images-directory)
        ]
    ;(println all-images-in-directory)
-   (doall (for [one-image all-images-in-directory]
-            (do
-              ;(println one-image)
-              (let [vector-of-character-maps [(doall (twopassextraction/character-extraction-main one-image images-directory temp-directory))]]
-                (doall (character-identification-main vector-of-character-maps))
+   (loop [all-images-left-in-directory all-images-in-directory
+          new-file-text subtitle-file-as-string
+          ]
+    ; (println (first all-images-left-in-directory))
+     (if (empty? all-images-left-in-directory)
+       (spit new-file-full-path new-file-text)
+       (let [first-image (first all-images-left-in-directory)
+             vector-of-character-maps [(twopassextraction/character-extraction-main first-image images-directory temp-directory)]
+             the-image-text (doall (character-identification-main vector-of-character-maps))]
+         (recur (drop 1 all-images-left-in-directory)
+                (clojure.string/replace new-file-text (re-pattern first-image) the-image-text)
                 )
-              )
-            )
-          )
+         )
+
+       )
+     )
     )
   )

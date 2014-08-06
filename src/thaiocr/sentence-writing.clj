@@ -9,13 +9,17 @@
   "find a new range and add 5"
   )
 
-(defn find-all-connected-maps [starting-maps]
-  (let [lowest-row-map (first (sort-by :lowest-row starting-maps))
+(defn find-all-connected-maps
+"find maps within the same range"
+[starting-maps]
+;(println "starting-maps " starting-maps)
+(let [starting-maps-no-nil (filter #(not (nil? %)) starting-maps)
+      lowest-row-map (first (sort-by :lowest-row starting-maps-no-nil))
         ;starting-lowest-row (:lowest-row lowest-row-map)
         starting-highest-row (:highest-row lowest-row-map)
         ]
     (loop [keep-going true
-           remaining-maps starting-maps
+           remaining-maps starting-maps-no-nil
            highest-row-maximum (+ 5 starting-highest-row)
            vector-of-maps []
            ]
@@ -48,12 +52,15 @@
   [group-of-letter-maps]
   (loop [remaining-maps group-of-letter-maps
          rows []]
-;    (println "remaininig-maps " remaining-maps)
+                                        ;    (println "remaininig-maps " remaining-maps)
+   ; (println remaining-maps)
     (if (empty? remaining-maps)
       rows
-      (let [[new-rows new-remaining-maps] (find-all-connected-maps remaining-maps)
+      (let [[new-rows new-remaining-maps] (doall (find-all-connected-maps remaining-maps))
             new-rows-conjed (conj rows new-rows)
+            ;new-remaining-maps-no-nil (filter #(not (nil? %)) new-remaining-maps)
             ]
+        ;(println "new-remaining-maps-no-nil " new-remaining-maps-no-nil)
         (recur new-remaining-maps
                new-rows-conjed
                )
@@ -71,7 +78,7 @@ pattern-range=the range of x axis places the pattern may be"
   [all-pattern-maps pattern-range]
   (let [patterns-found (for [one-pattern all-pattern-maps]
                          (if (some #(= % (:lowest-column one-pattern)) pattern-range)
-                           one-pattern
+                          one-pattern
                            nil
                            )
                          )
@@ -81,6 +88,7 @@ pattern-range=the range of x axis places the pattern may be"
                     nil
                     )
         ]
+   ; (println maybe-vec)
     maybe-vec
                                         ;(spit "/home/jared/clojureprojects/thaiocr/vecpatterns.txt" vec-patterns-found :append true)
 
@@ -98,16 +106,53 @@ pattern-range=the range of x axis places the pattern may be"
          )
   )
 
+
+(defn handle-special-cases
+  "search map for special cases and correct them basically remove the character following"
+  [maps-sorted-by-position]
+  ;(println maps-sorted-by-position)
+  (loop [maps-sorted-by-position maps-sorted-by-position
+         new-maps []
+         ]
+    (if (empty? maps-sorted-by-position)
+      new-maps
+      (let [first-character-map (first maps-sorted-by-position)
+            first-character (:character first-character-map)
+            ]
+        (if (or
+             (= first-character "ะ") ;delete the next value in the map
+             (= first-character "ำ") ;delete the next value in the map
+             (= first-character "ญ") ;delete the next value in the map
+             (= first-character "ฐ") ;delete the next value in the map
+             )
+          (recur (drop 2 maps-sorted-by-position) ; drop 2 because the next one should be removed from the collection
+                 (conj new-maps first-character-map)
+                 )
+          (recur (drop 1 maps-sorted-by-position)
+                 (conj new-maps first-character-map)
+                 )
+                                        ;(= new-character-map-found-or-edit "i") ;ignore
+                                        ;(println "i")
+                                        ;(= new-character-map-found-or-edit "j") ;ignore
+                                        ;(println "j")
+         )))
+    )
+
+  )
+
 (defn make-sentence-vector
   "width-of-ones-zeros = the width of the whole one-zeros-file
 put each character in the proper order and print out a string
 "
   [group-of-letter-maps]
-  (for [one-sentence-line (split-by-rows group-of-letter-maps)]
+
+;  (println "group-of-letter-maps" group-of-letter-maps)
+  (for [one-sentence-line (doall (split-by-rows group-of-letter-maps))]
     (let [use-one-sentence-line one-sentence-line  ;the vector of characters that we foun
           sorted-by-position (sort-by :lowest-column use-one-sentence-line) ; sort the vectory of characters found by position on the x axis
+          all-maps-sorted-by-position-with-special-cases-handled (doall (handle-special-cases sorted-by-position))
           ]
-      (loop [sorted-by-position sorted-by-position
+      (loop [sorted-by-position all-maps-sorted-by-position-with-special-cases-handled
              to-write []
              ]
         (if (empty? sorted-by-position)
@@ -119,8 +164,9 @@ put each character in the proper order and print out a string
                   first-pattern-x-plus-7 (+ first-pattern-x 7)
                   first-pattern-range (range first-pattern-x-minus-7 first-pattern-x-plus-7)
                   all-patterns-in-this-range (if (= 5 (:level first-pattern))
-                                               (find-patterns-in-range sorted-by-position first-pattern-range)
-                                               (vector first-pattern))
+                                               (vector first-pattern)
+                                               (doall (find-patterns-in-range sorted-by-position first-pattern-range))
+                                               )
                   how-many-patterns (count all-patterns-in-this-range)
                   ]
               (recur (drop how-many-patterns sorted-by-position)
