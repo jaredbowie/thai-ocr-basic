@@ -1,10 +1,15 @@
 # thaiocr
 
-A Clojure library designed to ... well, that part is up to you.
+Read Thai bmps extracted from a dvd to text and put them into an associated subtitle file.
 
 ## Usage
 
-FIXME
+requires mongodb
+Rip a dvd.
+Use subrip to extract the bmps and produce a srt subtitle file.  
+Set the parameters in the -main of character-reading.clj
+Run and type characters as they appear.
+Done.
 
 ## License
 
