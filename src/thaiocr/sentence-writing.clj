@@ -128,9 +128,14 @@ pattern-range=the range of x axis places the pattern may be"
           (recur (drop 2 maps-sorted-by-position) ; drop 2 because the next one should be removed from the collection
                  (conj new-maps first-character-map)
                  )
-          (recur (drop 1 maps-sorted-by-position)
-                 (conj new-maps first-character-map)
-                 )
+          (if (and (= first-character "เ") (= "เ" (:character (second maps-sorted-by-position))))
+            ;untested
+            (recur (drop 2 maps-sorted-by-position)
+                   (conj new-maps (assoc first-character-map :character "แ"))
+                   )
+            (recur (drop 1 maps-sorted-by-position)
+                   (conj new-maps first-character-map)
+                   ))
                                         ;(= new-character-map-found-or-edit "i") ;ignore
                                         ;(println "i")
                                         ;(= new-character-map-found-or-edit "j") ;ignore

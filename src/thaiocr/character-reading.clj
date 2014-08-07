@@ -79,6 +79,14 @@
     )
   )
 
+
+(defn replace-some-docs []
+ (let [conn (mgcore/connect)
+        db (mgcore/get-db conn "thai-ocr")
+        ]
+    (mgcoll/remove db "all-documents" {:associated-character "์"}) )
+  )
+
 (defn view-all-documents []
   (let [conn (mgcore/connect)
         db (mgcore/get-db conn "thai-ocr")
@@ -411,7 +419,7 @@ connection to db and the db we are connected to
        text-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
        new-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
        subtitle-file-as-string (slurp text-file-full-path)
-       all-images-in-directory (fs/list-dir images-directory)
+       all-images-in-directory (sort (fs/list-dir images-directory))
        ]
    ;(println all-images-in-directory)
    (loop [all-images-left-in-directory all-images-in-directory
