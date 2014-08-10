@@ -41,7 +41,7 @@
          )
 
 (defn character-level [one-character]
-  (let [all-levels-map {"ก" 1 "ข" 1 "ฃ" 1 "ค" 1 "ฅ" 1 "ฆ" 1 "ง" 1 "จ" 1 "ฉ" 1 "ช" 1 "ซ" 1 "ฌ" 1 "ญ" 1 "ฎ" 1 "ฏ" 1 "ฐ" 1 "ฑ" 1 "ฒ" 1 "ณ" 1 "ด" 1 "ต" 1 "ถ" 1 "ท" 1 "ธ" 1 "น" 1 "บ" 1 "ป" 1 "ผ" 1 "ฝ" 1 "พ" 1 "ฟ" 1 "ภ" 1 "ม" 1 "ย" 1 "ร" 1 "ล" 1 "ว" 1 "ศ" 1 "ษ" 1 "ส" 1 "ห" 1 "ฬ" 1 "อ" 1 "ฮ" 1 "ฯ" 5 "ะ" 5 "ั" 2 "า" 5 " ำ" 2 "ิ" 2 "ี" 2 "ึ" 2 "ื" 2 "ุ" 3 "ู" 3 "฿" 5 "เ" 5 "แ" 5 "โ" 5 "ใ" 5 "ไ" 5 "ๅ" 1 "ๆ" 5 "็" 4 "่" 4 "้" 4 "๊" 4 "๋" 4 "์" 4 "๐" 5 "๑" 5 "๒" 5 "๓" 5 "๔" 5 "๕" 5 "๖" 5 "๗" 5 "๘" 5 "๙" 5 "a" 5 "b" 5 "c" 5 "d" 5 "e" 5 "f" 5 "g" 5 "h" 5 "i" 5 "j" 5 "k" 5 "l" 5 "m" 5 "n" 5 "o" 5 "p" 5 "q" 5 "r" 5 "s" 5 "t" 5 "u" 5 "v" 5 "w" 5 "x" 5 "y" 5 "z" 5 "A" 5 "B" 5 "C" 5 "D" 5 "E" 5 "F" 5 "G" 5 "H" 5 "I" 5 "J" 5 "K" 5 "L" 5 "M" 5 "N" 5 "O" 5 "P" 5 "Q" 5 "R" 5 "S" 5 "T" 5 "U" 5 "V" 5 "W" 5 "X" 5 "Y" 5 "Z" 5 "1" 5 "2" 5 "3" 5 "4" 5 "5" 5 "6" 5 "7" 5 "8" 5 "9" 5 "0" 5}]
+  (let [all-levels-map {"ก" 1 "ข" 1 "ฃ" 1 "ค" 1 "ฅ" 1 "ฆ" 1 "ง" 1 "จ" 1 "ฉ" 1 "ช" 1 "ซ" 1 "ฌ" 1 "ญ" 1 "ฎ" 1 "ฏ" 1 "ฐ" 1 "ฑ" 1 "ฒ" 1 "ณ" 1 "ด" 1 "ต" 1 "ถ" 1 "ท" 1 "ธ" 1 "น" 1 "บ" 1 "ป" 1 "ผ" 1 "ฝ" 1 "พ" 1 "ฟ" 1 "ภ" 1 "ม" 1 "ย" 1 "ร" 1 "ล" 1 "ว" 1 "ศ" 1 "ษ" 1 "ส" 1 "ห" 1 "ฬ" 1 "อ" 1 "ฮ" 1 "ฯ" 5 "ะ" 5 "ั" 2 "า" 5 "ำ" 6 "ิ" 2 "ี" 2 "ึ" 2 "ื" 2 "ุ" 3 "ู" 3 "฿" 5 "เ" 5 "แ" 5 "โ" 5 "ใ" 5 "ไ" 5 "ๅ" 1 "ๆ" 5 "็" 4 "่" 4 "้" 4 "๊" 4 "๋" 4 "์" 4 "๐" 5 "๑" 5 "๒" 5 "๓" 5 "๔" 5 "๕" 5 "๖" 5 "๗" 5 "๘" 5 "๙" 5 "a" 5 "b" 5 "c" 5 "d" 5 "e" 5 "f" 5 "g" 5 "h" 5 "i" 5 "j" 5 "k" 5 "l" 5 "m" 5 "n" 5 "o" 5 "p" 5 "q" 5 "r" 5 "s" 5 "t" 5 "u" 5 "v" 5 "w" 5 "x" 5 "y" 5 "z" 5 "A" 5 "B" 5 "C" 5 "D" 5 "E" 5 "F" 5 "G" 5 "H" 5 "I" 5 "J" 5 "K" 5 "L" 5 "M" 5 "N" 5 "O" 5 "P" 5 "Q" 5 "R" 5 "S" 5 "T" 5 "U" 5 "V" 5 "W" 5 "X" 5 "Y" 5 "Z" 5 "1" 5 "2" 5 "3" 5 "4" 5 "5" 5 "6" 5 "7" 5 "8" 5 "9" 5 "0" 5}]
     (get all-levels-map one-character)
       )
   )
@@ -51,8 +51,10 @@
         number-of-columns (count ones-zeros-string-split-by-line)
         number-of-rows (count (second ones-zeros-string-split-by-line))
         level (character-level associated-character)
+        the-map {:character-string-ones-zeros ones-zeros-string :columns number-of-columns :rows number-of-rows :associated-character associated-character :level level :split-by split-by :split-at split-at}
         ]
-     {:character-string-ones-zeros ones-zeros-string :columns number-of-columns :rows number-of-rows :associated-character associated-character :level level :split-by split-by :split-at split-at}
+    (println the-map)
+    the-map
     )
   )
 ;should have a map made for special characters telling where to split
@@ -84,7 +86,7 @@
  (let [conn (mgcore/connect)
         db (mgcore/get-db conn "thai-ocr")
         ]
-    (mgcoll/remove db "all-documents" {:associated-character "์"}) )
+   (mgcoll/remove db "all-documents" {:associated-character "ำ"}) )
   )
 
 (defn view-all-documents []
@@ -296,7 +298,7 @@ returns a vector of two characters, the split column or row and the split place
             (cond
              (= string-association "###")
              (let [[strings-split-maps split-by split-at] (split-ones-zeros-string first-character-map)
-                   the-map (make-map-for-one-character one-string string-association split-by split-at)
+                   the-map (doall (make-map-for-one-character one-string string-association split-by split-at))
                   ; string-map-a {:character (first strings-split) :lowest-row :highest-row :lowest-column :highest-column}
                   ; string-map-b {:character (second strings-split) :lowest-row :highest-row :lowest-column :highest-column}
                     ]
@@ -315,7 +317,7 @@ returns a vector of two characters, the split column or row and the split place
              ;(= string-association "ฐ") (println "ฐ")
              ;(= string-association "i") (println "i")
              ;(= string-association "j") (println "j")
-             :else (let [the-map (make-map-for-one-character one-string string-association nil nil)]
+             :else (let [the-map (doall (make-map-for-one-character one-string string-association nil nil))]
                     ; (println the-map)
                      (insert-document the-map conn db)
                        {:character (:associated-character the-map) :level (:level the-map) :lowest-row (:lowest-row first-character-map) :highest-row (:highest-row first-character-map) :lowest-column (:lowest-column first-character-map) :highest-column (:highest-column first-character-map)}
@@ -372,7 +374,7 @@ connection to db and the db we are connected to
                    (if (empty? with-no-empty-strings)
                      character-maps-found
                      (let [first-character-map (first with-no-empty-strings)
-                           new-character-map-found-or-edit (do-one-ones-zeros first-character-map conn db)
+                           new-character-map-found-or-edit (doall (do-one-ones-zeros first-character-map conn db))
                            ]
                                         ;(println "####")
                                         ;(println "####")
@@ -414,10 +416,10 @@ connection to db and the db we are connected to
 
 
 (defn -main []
- (let [images-directory "/home/jared/clojureprojects/thaiocr/testbmp/"
+ (let [images-directory "/home/jared/clojureprojects/thaiocr/firsttype/"
        temp-directory "/home/jared/clojureprojects/thaiocr/testbmptempdir/"
-       text-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
-       new-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_04_1.srt"
+       text-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_01_0.srt"
+       new-file-full-path "/home/jared/clojureprojects/thaiocr/VTS_01_0.srt"
        subtitle-file-as-string (slurp text-file-full-path)
        all-images-in-directory (sort (fs/list-dir images-directory))
        ]
@@ -427,10 +429,12 @@ connection to db and the db we are connected to
           ]
     ; (println (first all-images-left-in-directory))
      (if (empty? all-images-left-in-directory)
+      ; new-file-text
        (spit new-file-full-path new-file-text)
        (let [first-image (first all-images-left-in-directory)
              vector-of-character-maps [(twopassextraction/character-extraction-main first-image images-directory temp-directory)]
              the-image-text (doall (character-identification-main vector-of-character-maps))]
+         (println the-image-text)
          (recur (drop 1 all-images-left-in-directory)
                 (clojure.string/replace new-file-text (re-pattern first-image) the-image-text)
                 )
